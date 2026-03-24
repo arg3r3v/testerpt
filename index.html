@@ -10,6 +10,26 @@
 
 </head>
 
+  <style>
+    
+    /* Zona joystick*/
+  #joyLeft, #joyRight {
+  position: absolute;
+  bottom: 20px;
+  width: 160px;
+  height: 160px;
+  touch-action: none;
+  display: none;
+  z-index: 9999;
+}
+
+#joyLeft { left: 20px; }
+#joyRight { right: 20px; }
+    
+html,body { height:100%; margin:0; }
+    
+  </style>
+
 <body style="margin:0; overflow:hidden;">
 
   <!--Zona para joystick-->
@@ -25,6 +45,7 @@
     <a-assets>
       <a-asset-item id="nino" src="assets/nino.glb"></a-asset-item>
       <a-asset-item id="mesa" src="assets/mesa.glb"></a-asset-item>
+      <a-asset-item id="sillon" src="assets/sillon.glb"></a-asset-item>
       <a-asset-item id="salon" src="assets/salon.glb"></a-asset-item>
     </a-assets>
 
@@ -37,11 +58,11 @@
     <!-- Modelos -->
     <a-entity gltf-model="#mesa" position="0 0 0"></a-entity>
     <a-entity gltf-model="#salon" position="0 0 0"></a-entity>
+    <a-entity gltf-model="#sillon" position="0 0 0"></a-entity>
 
     <!-- RIG -->
     <a-entity id="rig" position="0 0 0">
 
-      <!-- TLACUACHE -->
       <a-entity id="player"
                 gltf-model="#nino"
                 animation-mixer="clip: walk; loop: repeat">
