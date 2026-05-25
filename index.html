@@ -10,10 +10,10 @@
 
 </head>
 
-  <style>
+<style>
     
-    /* Zona joystick*/
-  #joyLeft, #joyRight {
+/* Zona joystick*/
+#joyLeft, #joyRight {
   position: absolute;
   bottom: 20px;
   width: 160px;
@@ -26,29 +26,32 @@
 #joyLeft { left: 20px; }
 #joyRight { right: 20px; }
     
-html,body { height:100%; margin:0; }
+html,body { 
+  height:100%; 
+  margin:0; 
+}
     
-  </style>
+</style>
 
 <body style="margin:0; overflow:hidden;">
 
-  <!--Zona para joystick-->
+<!--Zona para joystick-->
 <div id="joyLeft"></div>
 <div id="joyRight"></div>
 
-  <a-scene
-    background="color: #B2B2B2"
-    renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true"
-    shadow="type: pcfsoft">
+<a-scene
+  background="color: #B2B2B2"
+  renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true"
+  shadow="type: pcfsoft">
 
-    <!-- Assets -->
-    <a-assets>
-      <a-asset-item id="nino" src="assets/ninopt.glb"></a-asset-item>
-      <a-asset-item id="mesa" src="assets/mesa.glb"></a-asset-item>
-      <a-asset-item id="sillon" src="assets/sillon.glb"></a-asset-item>
-      <a-asset-item id="salon" src="assets/salon.glb"></a-asset-item>
-      <a-asset-item id="navmesh" src="assets/navmesh.glb"></a-asset-item>
-    </a-assets>
+  <!-- Assets -->
+  <a-assets>
+    <a-asset-item id="nino" src="assets/ninopt.glb"></a-asset-item>
+    <a-asset-item id="mesa" src="assets/mesa.glb"></a-asset-item>
+    <a-asset-item id="sillon" src="assets/sillon.glb"></a-asset-item>
+    <a-asset-item id="salon" src="assets/salon.glb"></a-asset-item>
+    <a-asset-item id="navmesh" src="assets/navmesh.glb"></a-asset-item>
+  </a-assets>
 
   <a-entity
     gltf-model="#navmesh"
@@ -56,35 +59,37 @@ html,body { height:100%; margin:0; }
     visible="true">
   </a-entity>
     
-    <!-- Modelos -->
-    <a-entity gltf-model="#mesa" position="0 0 0"></a-entity>
-    <a-entity gltf-model="#salon" position="0 0 0"></a-entity>
-    <a-entity gltf-model="#sillon" position="0 0 0"></a-entity>
+  <!-- Modelos -->
+  <a-entity gltf-model="#mesa" position="0 0 0"></a-entity>
+  <a-entity gltf-model="#salon" position="0 0 0"></a-entity>
+  <a-entity gltf-model="#sillon" position="0 0 0"></a-entity>
 
-    <!-- RIG -->
-    <a-entity id="rig" position="0 0 0">
+  <!-- RIG -->
+  <a-entity id="rig" position="0 0 0">
 
-      <a-entity id="player"
-                gltf-model="#nino"
-                animation-mixer="clip: walk; loop: repeat">
-      </a-entity>
+    <a-entity id="player"
+              gltf-model="#nino"
+              animation-mixer="clip: walk; loop: repeat">
+    </a-entity>
       
-      <!-- CÁMARA -->
-      <a-entity id="cameraPivot" position="0 1.5 0">
-        <a-entity id="cameraYaw" look-controls="pointerLockEnabled: false">
-          <a-entity id="cameraBoom" position="0 1 4">
-            <a-entity id="gameCamera" camera></a-entity>
-          </a-entity>
+    <!-- CÁMARA -->
+    <a-entity id="cameraPivot" position="0 1.5 0">
+      <a-entity id="cameraYaw" look-controls="pointerLockEnabled: false">
+        <a-entity id="cameraBoom" position="0 1 4">
+          <a-entity id="gameCamera" camera></a-entity>
         </a-entity>
       </a-entity>
-
     </a-entity>
+
+  </a-entity>
     
-  </a-scene>
+</a-scene>
 
 <script>
 window.addEventListener('load', () => {
+
   const scene = document.querySelector('a-scene');
+
   scene.addEventListener('loaded', () => {
 
     const rig = document.querySelector('#rig');
@@ -96,12 +101,6 @@ window.addEventListener('load', () => {
 
     const exitDistance = 1.5;
     let alreadyTriggered = false;
-
-      // Variables para múltiples luciérnagas (compatibles con clases o ids)
-const luciernagas = document.querySelectorAll('.luciernaga, #luciernaga');
-const lucPopup = document.getElementById('lucyPopup');
-const lucDistance = 1.5;
-const lucState = new Map();
 
     if (!rig || !player || !camera) {
       console.warn('Faltan elementos rig/player/camera');
@@ -225,11 +224,13 @@ const lucState = new Map();
           origin.y += 5;
 
           raycaster.set(origin, downVector);
+
           let intersects = navMeshEl && navMeshEl.object3D
             ? raycaster.intersectObject(navMeshEl.object3D, true)
             : [];
 
           if (intersects.length > 0) {
+
             currentPosition.copy(testFull);
             currentPosition.y = intersects[0].point.y;
             moved = true;
@@ -238,8 +239,11 @@ const lucState = new Map();
           if (!moved) {
 
             const tryAxis = (axis, amount) => {
+
               let reduced = amount;
+
               for (let r = 0; r < 3; r++) {
+
                 let test = currentPosition.clone();
                 test[axis] += reduced;
 
@@ -247,11 +251,13 @@ const lucState = new Map();
                 o.y += 5;
 
                 raycaster.set(o, downVector);
+
                 let hits = navMeshEl && navMeshEl.object3D
                   ? raycaster.intersectObject(navMeshEl.object3D, true)
                   : [];
 
                 if (hits.length > 0) {
+
                   currentPosition[axis] = test[axis];
                   currentPosition.y = hits[0].point.y;
                   return true;
@@ -259,6 +265,7 @@ const lucState = new Map();
 
                 reduced *= cornerFriction;
               }
+
               return false;
             };
 
@@ -271,8 +278,10 @@ const lucState = new Map();
 
         const moveAngle = Math.atan2(moveVector.x, moveVector.z);
         const targetRotation = moveAngle + Math.PI;
+
         const currentRotation = player.object3D.rotation.y;
         const diff = angleDifference(currentRotation, targetRotation);
+
         player.object3D.rotation.y += diff * rotationSmooth;
 
         if (!moving) {
@@ -281,6 +290,7 @@ const lucState = new Map();
         }
 
       } else {
+
         if (moving) {
           player.components['animation-mixer']?.pause();
           moving = false;
@@ -289,10 +299,12 @@ const lucState = new Map();
 
       /* Ajuste altura navmesh */
       if (navMeshEl && navMeshEl.object3D) {
+
         const origin = rig.object3D.position.clone();
         origin.y += 5;
 
         raycaster.set(origin, downVector);
+
         const intersects = raycaster.intersectObject(navMeshEl.object3D, true);
 
         if (intersects.length > 0) {
@@ -302,64 +314,34 @@ const lucState = new Map();
 
       /* ROTACIÓN CÁMARA */
       const look = cameraYaw.components['look-controls'];
+
       if (look) {
+
         const rotSpeed = 1.5;
 
         look.yawObject.rotation.y -= lookInput.x * rotSpeed * delta;
         look.pitchObject.rotation.x -= lookInput.y * rotSpeed * delta;
 
         const maxPitch = Math.PI / 2 - 0.1;
+
         look.pitchObject.rotation.x = Math.max(
           -maxPitch,
           Math.min(maxPitch, look.pitchObject.rotation.x)
         );
       }
 
-      /* ===== DETECCIÓN LUCÉRNAGA ===== */
-luciernagas.forEach(luc => {
-
-  // buscar trigger hijo (soporta tanto class como id)
-  const trigger = luc.querySelector('.luciernagaTrigger, #luciernagaTrigger');
-  if (!trigger) return;
-
-  const playerPos = rig.object3D.position;
-  const triggerPos = new THREE.Vector3();
-  trigger.object3D.getWorldPosition(triggerPos);
-
-  const distance = playerPos.distanceTo(triggerPos);
-  const wasInside = lucState.get(luc) || false;
-
-  if (distance < lucDistance && !wasInside) {
-    lucState.set(luc, true);
-
-    // mensaje dinámico desde data-message
-const obra = luc.dataset.obra || "Obra desconocida";
-const artista = luc.dataset.artista || "Autor desconocido";
-
-lucPopup.innerHTML = `
-  <strong>${obra}</strong><br>
-  <span style="opacity:0.8">${artista}</span>
-`;
-    lucPopup.classList.add('show');    // usa la clase .show para animación
-  }
-
-  if (distance >= lucDistance && wasInside) {
-    lucState.set(luc, false);
-    lucPopup.classList.remove('show');
-  }
-
-});
-      
       /* ===== DETECCIÓN DE SALIDA CON TRIGGER ===== */
       if (salidaTrigger && !alreadyTriggered) {
 
         const playerPos = rig.object3D.position.clone();
+
         const triggerPos = new THREE.Vector3();
         salidaTrigger.object3D.getWorldPosition(triggerPos);
 
         const distance = playerPos.distanceTo(triggerPos);
 
         if (distance < exitDistance) {
+
           alreadyTriggered = true;
 
           console.log("Salida activada");
@@ -387,6 +369,7 @@ fetch(SHEET_URL)
     const rows = csv.split("\n").slice(1);
 
     rows.forEach(row => {
+
       const columns = row.split(",");
 
       const id = columns[0]?.trim();
@@ -403,10 +386,10 @@ fetch(SHEET_URL)
 
     console.log("Ficha técnica cargada");
   })
+
   .catch(err => console.error(err));
-  
+
 </script>
   
 </body>
-  
 </html>
