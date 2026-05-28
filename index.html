@@ -54,8 +54,17 @@
       <a-asset-item id="puertas" src="assets/puertas.glb"></a-asset-item>
       <a-asset-item id="perchero" src="assets/perchero.glb"></a-asset-item>
       <a-asset-item id="navmesh" src="assets/navmesh.glb"></a-asset-item>
-
-      <a-asset-item id="lluvia" src="assets/lluvia.glb"></a-asset-item>
+      
+      <video
+          id="stormVideo"
+          src="assets/0527.mp4"
+          autoplay
+          loop
+          muted
+          playsinline
+          crossorigin="anonymous">
+        </video>
+      
     </a-assets>
 
     <a-entity
@@ -75,7 +84,12 @@
     <a-entity gltf-model="#perchero" position="0 0 0"></a-entity>
 
     <a-entity gltf-model="#mama" position="0 0 0" animation-mixer="clip: talk; loop: repeat; timeScale: 1"></a-entity>
-    <a-entity gltf-model="#lluvia" position="0 0 0" animation-mixer="clip: *; loop: repeat; timeScale: 1"></a-entity>
+    <a-video
+      src="#stormVideo"
+      position="0 8 -20"
+      width="40"
+      height="22">
+    </a-video>
 
     <!-- RIG -->
     <a-entity id="rig" position="0 0 0">
