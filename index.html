@@ -44,6 +44,8 @@
     <!-- Assets -->
     <a-assets>
       <a-asset-item id="nino" src="assets/ninopt.glb"></a-asset-item>
+      <a-asset-item id="mama" src="assets/mama.glb"></a-asset-item>
+      
       <a-asset-item id="mesa" src="assets/mesa.glb"></a-asset-item>
       <a-asset-item id="librero" src="assets/librero.glb"></a-asset-item>
       <a-asset-item id="sillon" src="assets/sillon.glb"></a-asset-item>
@@ -53,7 +55,7 @@
       <a-asset-item id="perchero" src="assets/perchero.glb"></a-asset-item>
       <a-asset-item id="navmesh" src="assets/navmesh.glb"></a-asset-item>
 
-      <a-asset-item id="mama" src="assets/mama.glb"></a-asset-item>
+      <a-asset-item id="lluvia" src="assets/lluvia.glb"></a-asset-item>
     </a-assets>
 
     <a-entity
@@ -73,6 +75,7 @@
     <a-entity gltf-model="#perchero" position="0 0 0"></a-entity>
 
     <a-entity gltf-model="#mama" position="0 0 0" animation-mixer="clip: talk; loop: repeat; timeScale: 1"></a-entity>
+    <a-entity gltf-model="#lluvia" position="0 0 0" animation-mixer="clip: *; loop: repeat; timeScale: 1"></a-entity>
 
     <!-- RIG -->
     <a-entity id="rig" position="0 0 0">
