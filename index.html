@@ -36,6 +36,15 @@
   <div id="joyLeft"></div>
   <div id="joyRight"></div>
 
+      <video
+        id="stormVideo"
+        src="assets/0527.mp4"
+        autoplay
+        muted
+        loop
+        playsinline>
+      </video>
+  
   <a-scene
     background="color: #B2B2B2"
     renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true"
@@ -54,16 +63,6 @@
       <a-asset-item id="puertas" src="assets/puertas.glb"></a-asset-item>
       <a-asset-item id="perchero" src="assets/perchero.glb"></a-asset-item>
       <a-asset-item id="navmesh" src="assets/navmesh.glb"></a-asset-item>
-      
-      <video
-          id="stormVideo"
-          src="assets/0527.mp4"
-          autoplay
-          loop
-          muted
-          playsinline
-          crossorigin="anonymous">
-        </video>
       
     </a-assets>
 
@@ -86,7 +85,7 @@
     <a-entity gltf-model="#mama" position="0 0 0" animation-mixer="clip: talk; loop: repeat; timeScale: 1"></a-entity>
     <a-video
       src="#stormVideo"
-      position="-2.304 3.124 -2.919"
+      position="-2.3043 3.1244 -2.9196"
       width="3.21"
       height="2">
     </a-video>
@@ -403,6 +402,13 @@
         console.log("Ficha técnica cargada");
       })
       .catch(err => console.error(err));
+      
+    const video = document.querySelector('#stormVideo');
+
+    window.addEventListener('click', () => {
+      video.play();
+    });
+    
   </script>
 
 </body>
