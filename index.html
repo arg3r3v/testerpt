@@ -394,32 +394,6 @@
 
       });
     });
-
-    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYwv9BW-cThCjT5Phq7cBDJJFuIZTvA24rpxDlSgbQtlr3Inr4lbHf5pXUB8r6X47GaxQfCLmyIU1X/pub?output=csv";
-
-    fetch(SHEET_URL)
-      .then(res => res.text())
-      .then(csv => {
-        const rows = csv.split("\n").slice(1);
-
-        rows.forEach(row => {
-          const columns = row.split(",");
-
-          const id = columns[0]?.trim();
-          const obra = columns[1]?.trim();
-          const artista = columns[2]?.trim();
-
-          const entity = document.getElementById(id);
-
-          if (entity) {
-            entity.dataset.obra = obra;
-            entity.dataset.artista = artista;
-          }
-        });
-
-        console.log("Ficha técnica cargada");
-      })
-      .catch(err => console.error(err));
       
     const video = document.querySelector('#stormVideo');
 
