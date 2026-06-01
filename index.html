@@ -103,7 +103,7 @@
     <a-video
       src="#tvVideo"
       position="-3.46 1.88 1.935"
-      rotation="0 180 0">
+      rotation="0 180 0"
       width="0.7"
       height="0.7">
     </a-video>
@@ -395,11 +395,11 @@
       });
     });
       
-    const video = document.querySelector('#stormVideo');
-
     window.addEventListener('click', () => {
-      video.play();
-    });
+      document.querySelectorAll('video').forEach(video => {
+        video.play();
+      });
+    }, { once: true });
     
   </script>
 
