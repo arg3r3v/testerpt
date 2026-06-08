@@ -148,10 +148,18 @@
         const camera = document.querySelector('#gameCamera');
         const cameraYaw = document.querySelector('#cameraYaw');
         const navMeshEl = document.querySelector('#navmeshEntity');
-        const salidaTrigger = document.querySelector('#salidaTrigger');
 
-        const exitDistance = 1.5;
-        let alreadyTriggered = false;
+        const triggers = [
+          {
+            id: 'audioSala',
+            position: new THREE.Vector3(2, 1, -3),
+            size: new THREE.Vector3(1, 2, 1),
+            type: 'audio',
+            mediaId: 'audio1',
+            once: true,
+            activated: false
+          }
+        ];
 
         if (!rig || !player || !camera || !navMeshEl) {
           console.warn('Faltan elementos rig/player/camera/navmesh');
@@ -167,6 +175,14 @@
         let lastTime = performance.now();
         let moving = false;
         let started = false;
+
+        function activateTrigger(trigger) {
+          const media = document.getElementById(trigger.mediaId);
+          if (!media) return;
+          media.currentTime = 0;
+          media.play().catch(()=>{});
+          if (trigger.once) trigger.activated = true;
+        }
 
         const raycaster = new THREE.Raycaster();
         const downVector = new THREE.Vector3(0, -1, 0);
@@ -369,21 +385,20 @@
             );
           }
 
-          /* ===== DETECCIÓN DE SALIDA CON TRIGGER ===== */
-          if (salidaTrigger && !alreadyTriggered) {
-            const playerPos = rig.object3D.position.clone();
-            const triggerPos = new THREE.Vector3();
-            salidaTrigger.object3D.getWorldPosition(triggerPos);
+          /* ===== SISTEMA DE TRIGGERS ===== */
+          const playerPos = rig.object3D.position.clone();
 
-            const distance = playerPos.distanceTo(triggerPos);
+          for (const trigger of triggers) {
 
-            if (distance < exitDistance) {
-              alreadyTriggered = true;
-              console.log("Salida activada");
+            if (trigger.once && trigger.activated) continue;
 
-              setTimeout(() => {
-                window.location.href = "https://youtu.be/8Xo1rKX7Les?si=jWto45dyINOwZaBx";
-              }, 300);
+            const hit =
+              Math.abs(playerPos.x - trigger.position.x) <= trigger.size.x / 2 &&
+              Math.abs(playerPos.y - trigger.position.y) <= trigger.size.y / 2 &&
+              Math.abs(playerPos.z - trigger.position.z) <= trigger.size.z / 2;
+
+            if (hit) {
+              activateTrigger(trigger);
             }
           }
 
@@ -402,12 +417,6 @@
 
       });
     });
-      
-    window.addEventListener('click', () => {
-      document.querySelectorAll('video').forEach(video => {
-        video.play();
-      });
-    }, { once: true });
     
   </script>
 
