@@ -242,41 +242,6 @@
         player.addEventListener('model-loaded', () => {
           player.components['animation-mixer']?.pause();
         });
-
-/* ===== TRIGGERS AABB ===== */
-
-const activatedTriggers = new Set();
-
-rig.addEventListener('hitstart', (event) => {
-
-  const trigger = event.detail.intersectedEls?.[0];
-
-  if (!trigger) return;
-
-  const triggerId = trigger.id || trigger.object3D.uuid;
-
-  if (activatedTriggers.has(triggerId)) return;
-
-  activatedTriggers.add(triggerId);
-
-  const mediaId = trigger.getAttribute('data-media');
-
-  if (!mediaId) return;
-
-  const media = document.getElementById(mediaId);
-
-  if (!media) {
-    console.warn('No existe el media:', mediaId);
-    return;
-  }
-
-  media.currentTime = 0;
-
-  media.play().catch(err => {
-    console.warn(err);
-  });
-
-});
         
         function tick() {
           const now = performance.now();
@@ -400,7 +365,40 @@ rig.addEventListener('hitstart', (event) => {
               Math.min(maxPitch, look.pitchObject.rotation.x)
             );
           }
+/* ===== TRIGGERS AABB ===== */
 
+const activatedTriggers = new Set();
+
+rig.addEventListener('hitstart', (event) => {
+
+  const trigger = event.detail.intersectedEls?.[0];
+
+  if (!trigger) return;
+
+  const triggerId = trigger.id || trigger.object3D.uuid;
+
+  if (activatedTriggers.has(triggerId)) return;
+
+  activatedTriggers.add(triggerId);
+
+  const mediaId = trigger.getAttribute('data-media');
+
+  if (!mediaId) return;
+
+  const media = document.getElementById(mediaId);
+
+  if (!media) {
+    console.warn('No existe el media:', mediaId);
+    return;
+  }
+
+  media.currentTime = 0;
+
+  media.play().catch(err => {
+    console.warn(err);
+  });
+
+});
   </script>
 
 </body>
