@@ -7,7 +7,6 @@
   <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
-  <script src="https://unpkg.com/aframe-aabb-collider-component@3.2.1/dist/aframe-aabb-collider-component.min.js"></script>
 </head>
 
 <style>
@@ -118,7 +117,7 @@
     </a-video>
 
     <!-- RIG -->
-    <a-entity id="rig" position="0 0 0" aabb-collider="objects: .trigger">
+    <a-entity id="rig" position="0 0 0">
 
       <a-entity id="player"
                 gltf-model="#nino"
@@ -149,6 +148,10 @@
         const camera = document.querySelector('#gameCamera');
         const cameraYaw = document.querySelector('#cameraYaw');
         const navMeshEl = document.querySelector('#navmeshEntity');
+        const salidaTrigger = document.querySelector('#salidaTrigger');
+
+        const exitDistance = 1.5;
+        let alreadyTriggered = false;
 
         if (!rig || !player || !camera || !navMeshEl) {
           console.warn('Faltan elementos rig/player/camera/navmesh');
@@ -242,7 +245,7 @@
         player.addEventListener('model-loaded', () => {
           player.components['animation-mixer']?.pause();
         });
-        
+
         function tick() {
           const now = performance.now();
           const delta = (now - lastTime) / 1000;
@@ -365,40 +368,47 @@
               Math.min(maxPitch, look.pitchObject.rotation.x)
             );
           }
-/* ===== TRIGGERS AABB ===== */
 
-const activatedTriggers = new Set();
+          /* ===== DETECCIÓN DE SALIDA CON TRIGGER ===== */
+          if (salidaTrigger && !alreadyTriggered) {
+            const playerPos = rig.object3D.position.clone();
+            const triggerPos = new THREE.Vector3();
+            salidaTrigger.object3D.getWorldPosition(triggerPos);
 
-rig.addEventListener('hitstart', (event) => {
+            const distance = playerPos.distanceTo(triggerPos);
 
-  const trigger = event.detail.intersectedEls?.[0];
+            if (distance < exitDistance) {
+              alreadyTriggered = true;
+              console.log("Salida activada");
 
-  if (!trigger) return;
+              setTimeout(() => {
+                window.location.href = "https://youtu.be/8Xo1rKX7Les?si=jWto45dyINOwZaBx";
+              }, 300);
+            }
+          }
 
-  const triggerId = trigger.id || trigger.object3D.uuid;
+          requestAnimationFrame(tick);
+        }
 
-  if (activatedTriggers.has(triggerId)) return;
+        navMeshEl.addEventListener('model-loaded', () => {
+          console.log('Navmesh cargado');
 
-  activatedTriggers.add(triggerId);
+          if (!started) {
+            started = true;
+            snapRigToNavmesh();
+            tick();
+          }
+        });
 
-  const mediaId = trigger.getAttribute('data-media');
-
-  if (!mediaId) return;
-
-  const media = document.getElementById(mediaId);
-
-  if (!media) {
-    console.warn('No existe el media:', mediaId);
-    return;
-  }
-
-  media.currentTime = 0;
-
-  media.play().catch(err => {
-    console.warn(err);
-  });
-
-});
+      });
+    });
+      
+    window.addEventListener('click', () => {
+      document.querySelectorAll('video').forEach(video => {
+        video.play();
+      });
+    }, { once: true });
+    
   </script>
 
 </body>
