@@ -111,13 +111,16 @@
       height="2.3">
     </a-video>
 
-    <a-entity
-      particle-system="
-        particleCount:150;
-        size:0.2;
-        color:#ffffff;
-        velocityValue:0.01 0 0;">
-    </a-entity>
+<a-entity
+  position="-2.3 2.5 -2.8"
+  particle-system="
+    particleCount:500;
+    maxAge:10;
+    size:1;
+    color:#ffffff;
+    velocityValue:0.01 0 0;
+    opacity:0.5;">
+</a-entity>
     
     <a-video
       src="#tvVideo"
