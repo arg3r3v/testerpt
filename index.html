@@ -36,8 +36,14 @@
   <!--Zona para joystick-->
   <div id="joyLeft"></div>
   <div id="joyRight"></div>
-
-      <video
+  
+  <a-scene vr-mode-ui="enabled: true"
+    fog="type: exponential; color: #000000; density: 0.15"
+    background="color: #B2B2B2"
+    renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true"
+    shadow="type: pcfsoft">
+      
+    <video
         id="stormVideo"
         src="assets/0527.mp4"
         autoplay
@@ -54,13 +60,7 @@
         loop
         playsinline>
       </video>
-  
-  <a-scene
-    fog="type: exponential; color: #000000; density: 0.15"
-    background="color: #B2B2B2"
-    renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true"
-    shadow="type: pcfsoft">
-
+    
     <!-- Assets -->
     <a-assets>
       <a-asset-item id="nino" src="assets/ninopt.glb"></a-asset-item>
