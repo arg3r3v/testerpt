@@ -7,6 +7,7 @@
   <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.1/nipplejs.min.js"></script>
+  <script src="https://unpkg.com/aframe-aabb-collider-component@3.2.1/dist/aframe-aabb-collider-component.min.js"></script>
   
 </head>
 
@@ -79,6 +80,20 @@
       <a-asset-item id="perchero" src="assets/perchero.glb"></a-asset-item>
       <a-asset-item id="plantas" src="assets/plantas.glb"></a-asset-item>
       <a-asset-item id="navmesh" src="assets/navmesh.glb"></a-asset-item>
+
+      <audio id="audio1" src="assets/audio1.mp3" preload="auto"></audio>
+      <audio id="audio2" src="assets/audio2.mp3" preload="auto"></audio>
+      <audio id="audio3" src="assets/audio3.mp3" preload="auto"></audio>
+      <audio id="audio4" src="assets/audio4.mp3" preload="auto"></audio>
+      <audio id="audio5" src="assets/audio5.mp3" preload="auto"></audio>
+      <audio id="audio6" src="assets/audio6.mp3" preload="auto"></audio>
+      <audio id="audio7" src="assets/audio7.mp3" preload="auto"></audio>
+      <audio id="audio8" src="assets/audio8.mp3" preload="auto"></audio>
+      <audio id="audio9" src="assets/audio9.mp3" preload="auto"></audio>
+      <audio id="audio10" src="assets/audio10.mp3" preload="auto"></audio>
+      <audio id="audio11" src="assets/audio11.mp3" preload="auto"></audio>
+      <audio id="audio12" src="assets/audio12.mp3" preload="auto"></audio>
+      <audio id="audio13" src="assets/audio13.mp3" preload="auto"></audio>
       
     </a-assets>
 
@@ -119,6 +134,21 @@
       width="0.88"
       height="0.74">
     </a-video>
+
+    <!-- Trigger boxes -->
+    <a-box class="trigger" id="trigger1"  position="-8 1 -2"  width="1" height="2" depth="1" visible="true" data-audio="audio1"></a-box>
+    <a-box class="trigger" id="trigger2"  position="-10 1 1"  width="1" height="2" depth="1" visible="false" data-audio="audio2"></a-box>
+    <a-box class="trigger" id="trigger3"  position="-12 1 -4" width="1" height="2" depth="1" visible="false" data-audio="audio3"></a-box>
+    <a-box class="trigger" id="trigger4"  position="-14 1 3"  width="1" height="2" depth="1" visible="false" data-audio="audio4"></a-box>
+    <a-box class="trigger" id="trigger5"  position="-16 1 -6" width="1" height="2" depth="1" visible="false" data-audio="audio5"></a-box>
+    <a-box class="trigger" id="trigger6"  position="-18 1 0"  width="1" height="2" depth="1" visible="false" data-audio="audio6"></a-box>
+    <a-box class="trigger" id="trigger7"  position="-20 1 5"  width="1" height="2" depth="1" visible="false" data-audio="audio7"></a-box>
+    <a-box class="trigger" id="trigger8"  position="-22 1 -1" width="1" height="2" depth="1" visible="false" data-audio="audio8"></a-box>
+    <a-box class="trigger" id="trigger9"  position="-24 1 -5" width="1" height="2" depth="1" visible="false" data-audio="audio9"></a-box>
+    <a-box class="trigger" id="trigger10" position="-26 1 2"  width="1" height="2" depth="1" visible="false" data-audio="audio10"></a-box>
+    <a-box class="trigger" id="trigger11" position="-28 1 -3" width="1" height="2" depth="1" visible="false" data-audio="audio11"></a-box>
+    <a-box class="trigger" id="trigger12" position="-30 1 4"  width="1" height="2" depth="1" visible="false" data-audio="audio12"></a-box>
+    <a-box class="trigger" id="trigger13" position="-32 1 -7" width="1" height="2" depth="1" visible="false" data-audio="audio13"></a-box>
 
     <!-- RIG -->
     <a-entity id="rig" position="0 0 0" aabb-collider="objects: .trigger">
@@ -280,6 +310,41 @@
           player.components['animation-mixer']?.pause();
         });
 
+/* TRIGGERS AABB */
+
+const activatedTriggers = new Set();
+
+function getTriggerEntity(event) {
+  const detail = event.detail || {};
+  return detail.el || detail.intersectedEls?.[0] || detail.els?.[0] || null;
+}
+
+rig.addEventListener('hitstart', (event) => {
+  const trigger = getTriggerEntity(event);
+
+  if (!trigger || !trigger.classList.contains('trigger')) return;
+
+  const triggerId = trigger.id || trigger.object3D.uuid;
+
+  if (activatedTriggers.has(triggerId)) return;
+  activatedTriggers.add(triggerId);
+
+  const audioId = trigger.getAttribute('data-audio');
+  if (!audioId) return;
+
+  const audio = document.getElementById(audioId);
+
+  if (!audio) {
+    console.warn('No existe el audio:', audioId);
+    return;
+  }
+
+  audio.currentTime = 0;
+  audio.play().catch(err => {
+    console.warn(err);
+  });
+});
+        
         function tick() {
           const now = performance.now();
           const delta = (now - lastTime) / 1000;
