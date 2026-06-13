@@ -319,30 +319,27 @@ function getTriggerEntity(event) {
   return detail.el || detail.intersectedEls?.[0] || detail.els?.[0] || null;
 }
 
-rig.addEventListener('hitstart', (event) => {
+rig.addEventListener("hitstart", (event) => {
+
   const trigger = getTriggerEntity(event);
 
-  if (!trigger || !trigger.classList.contains('trigger')) return;
+  if (!trigger) return;
+  if (!trigger.classList.contains("trigger")) return;
 
   const triggerId = trigger.id || trigger.object3D.uuid;
 
   if (activatedTriggers.has(triggerId)) return;
   activatedTriggers.add(triggerId);
 
-  const audioId = trigger.getAttribute('data-audio');
+  const audioId = trigger.getAttribute("data-audio");
   if (!audioId) return;
 
   const audio = document.getElementById(audioId);
-
-  if (!audio) {
-    console.warn('No existe el audio:', audioId);
-    return;
-  }
+  if (!audio) return;
 
   audio.currentTime = 0;
-  audio.play().catch(err => {
-    console.warn(err);
-  });
+  audio.play();
+
 });
         
         function tick() {
