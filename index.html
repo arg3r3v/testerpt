@@ -302,35 +302,67 @@
           player.components['animation-mixer']?.pause();
         });
 
-/* TRIGGERS AABB */
+/* ===== TRIGGERS AABB ===== */
 
 const activatedTriggers = new Set();
 
 function getTriggerEntity(event) {
+
+  console.log("EVENTO AABB:", event);
+
   const detail = event.detail || {};
-  return detail.el || detail.intersectedEls?.[0] || detail.els?.[0] || null;
+
+  return (
+    detail.el ||
+    detail.intersectedEls?.[0] ||
+    detail.intersectedEls?.[0]?.object3D?.el ||
+    detail.els?.[0] ||
+    null
+  );
 }
 
 rig.addEventListener("hitstart", (event) => {
 
+  console.log("COLISION DETECTADA");
+
   const trigger = getTriggerEntity(event);
 
+  console.log("TRIGGER:", trigger);
+
   if (!trigger) return;
+
   if (!trigger.classList.contains("trigger")) return;
 
   const triggerId = trigger.id || trigger.object3D.uuid;
 
   if (activatedTriggers.has(triggerId)) return;
+
   activatedTriggers.add(triggerId);
 
   const audioId = trigger.getAttribute("data-audio");
+
+  console.log("AUDIO ID:", audioId);
+
   if (!audioId) return;
 
   const audio = document.getElementById(audioId);
-  if (!audio) return;
+
+  console.log("AUDIO:", audio);
+
+  if (!audio) {
+    console.error("No existe:", audioId);
+    return;
+  }
 
   audio.currentTime = 0;
-  audio.play();
+
+  audio.play()
+    .then(() => {
+      console.log("REPRODUCIENDO:", audioId);
+    })
+    .catch(err => {
+      console.error("ERROR PLAY:", err);
+    });
 
 });
         
