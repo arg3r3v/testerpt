@@ -204,7 +204,7 @@
         const camera = document.querySelector('#gameCamera');
         const cameraYaw = document.querySelector('#cameraYaw');
         const navMeshEl = document.querySelector('#navmeshEntity');
-        const salidaTrigger = document.querySelector('#salidaTrigger');
+        const activatedTriggers = new Set();
 
         const exitDistance = 1.5;
         let alreadyTriggered = false;
@@ -302,67 +302,42 @@
           player.components['animation-mixer']?.pause();
         });
 
-/* ===== TRIGGERS AABB ===== */
+/* ===== TRIGGERS ===== */
+document.querySelectorAll(".trigger").forEach(trigger => {
 
-const activatedTriggers = new Set();
+  const triggerId = trigger.id;
 
-function getTriggerEntity(event) {
+  if (!activatedTriggers.has(triggerId)) {
 
-  console.log("EVENTO AABB:", event);
+    const playerPos = rig.object3D.position.clone();
 
-  const detail = event.detail || {};
+    const triggerPos = new THREE.Vector3();
+    trigger.object3D.getWorldPosition(triggerPos);
 
-  return (
-    detail.el ||
-    detail.intersectedEls?.[0] ||
-    detail.intersectedEls?.[0]?.object3D?.el ||
-    detail.els?.[0] ||
-    null
-  );
-}
+    const distance = playerPos.distanceTo(triggerPos);
 
-rig.addEventListener("hitstart", (event) => {
+    if (distance < 1.2) {
 
-  console.log("COLISION DETECTADA");
+      activatedTriggers.add(triggerId);
 
-  const trigger = getTriggerEntity(event);
+      const audioId = trigger.getAttribute("data-audio");
 
-  console.log("TRIGGER:", trigger);
+      const audio = document.getElementById(audioId);
 
-  if (!trigger) return;
+      if (audio) {
 
-  if (!trigger.classList.contains("trigger")) return;
+        audio.currentTime = 0;
 
-  const triggerId = trigger.id || trigger.object3D.uuid;
-
-  if (activatedTriggers.has(triggerId)) return;
-
-  activatedTriggers.add(triggerId);
-
-  const audioId = trigger.getAttribute("data-audio");
-
-  console.log("AUDIO ID:", audioId);
-
-  if (!audioId) return;
-
-  const audio = document.getElementById(audioId);
-
-  console.log("AUDIO:", audio);
-
-  if (!audio) {
-    console.error("No existe:", audioId);
-    return;
+        audio.play()
+          .then(() => {
+            console.log("Reproduciendo:", audioId);
+          })
+          .catch(err => {
+            console.error(err);
+          });
+      }
+    }
   }
-
-  audio.currentTime = 0;
-
-  audio.play()
-    .then(() => {
-      console.log("REPRODUCIENDO:", audioId);
-    })
-    .catch(err => {
-      console.error("ERROR PLAY:", err);
-    });
 
 });
         
@@ -488,40 +463,6 @@ rig.addEventListener("hitstart", (event) => {
               Math.min(maxPitch, look.pitchObject.rotation.x)
             );
           }
-
-          /* ===== DETECCIÓN DE SALIDA CON TRIGGER ===== */
-          if (salidaTrigger && !alreadyTriggered) {
-            const playerPos = rig.object3D.position.clone();
-            const triggerPos = new THREE.Vector3();
-            salidaTrigger.object3D.getWorldPosition(triggerPos);
-
-            const distance = playerPos.distanceTo(triggerPos);
-
-            if (distance < exitDistance) {
-              alreadyTriggered = true;
-              console.log("Salida activada");
-
-              setTimeout(() => {
-                window.location.href = "https://youtu.be/8Xo1rKX7Les?si=jWto45dyINOwZaBx";
-              }, 300);
-            }
-          }
-
-          requestAnimationFrame(tick);
-        }
-
-        navMeshEl.addEventListener('model-loaded', () => {
-          console.log('Navmesh cargado');
-
-          if (!started) {
-            started = true;
-            snapRigToNavmesh();
-            tick();
-          }
-        });
-
-      });
-    });
       
     window.addEventListener('click', () => {
       document.querySelectorAll('video').forEach(video => {
