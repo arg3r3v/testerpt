@@ -463,7 +463,23 @@ document.querySelectorAll(".trigger").forEach(trigger => {
               Math.min(maxPitch, look.pitchObject.rotation.x)
             );
           }
-      
+
+          requestAnimationFrame(tick);
+        }
+
+        navMeshEl.addEventListener('model-loaded', () => {
+          console.log('Navmesh cargado');
+
+          if (!started) {
+            started = true;
+            snapRigToNavmesh();
+            tick();
+          }
+        });
+
+      });
+    });
+    
     window.addEventListener('click', () => {
       document.querySelectorAll('video').forEach(video => {
         video.play();
