@@ -194,296 +194,296 @@
   </a-scene>
 
   <script>
-    window.addEventListener('load', () => {
-      const scene = document.querySelector('a-scene');
+  window.addEventListener('load', () => {
+    const scene = document.querySelector('a-scene');
 
-      scene.addEventListener('loaded', () => {
+    scene.addEventListener('loaded', () => {
 
-        const rig = document.querySelector('#rig');
-        const player = document.querySelector('#player');
-        const camera = document.querySelector('#gameCamera');
-        const cameraYaw = document.querySelector('#cameraYaw');
-        const navMeshEl = document.querySelector('#navmeshEntity');
-        
-        const activatedTriggers = new Set();
+      const rig = document.querySelector('#rig');
+      const player = document.querySelector('#player');
+      const camera = document.querySelector('#gameCamera');
+      const cameraYaw = document.querySelector('#cameraYaw');
+      const navMeshEl = document.querySelector('#navmeshEntity');
+      
+      const activatedTriggers = new Set();
 
-        const exitDistance = 1.5;
-        let alreadyTriggered = false;
+      const exitDistance = 1.5;
+      let alreadyTriggered = false;
 
-        if (!rig || !player || !camera || !navMeshEl) {
-          console.warn('Faltan elementos rig/player/camera/navmesh');
-          return;
+      if (!rig || !player || !camera || !navMeshEl) {
+        console.warn('Faltan elementos rig/player/camera/navmesh');
+        return;
+      }
+
+      const speed = 0.5;
+      const rotationSmooth = 0.15;
+
+      let keys = {};
+      let nippleVector = new THREE.Vector2(0, 0);
+      let lookInput = new THREE.Vector2(0, 0);
+      let lastTime = performance.now();
+      let moving = false;
+      let started = false;
+
+      const raycaster = new THREE.Raycaster();
+      const downVector = new THREE.Vector3(0, -1, 0);
+
+      function angleDifference(a, b) {
+        let diff = b - a;
+        return Math.atan2(Math.sin(diff), Math.cos(diff));
+      }
+
+      function snapRigToNavmesh() {
+        if (!navMeshEl.object3D) return false;
+
+        navMeshEl.object3D.updateMatrixWorld(true);
+
+        const origin = rig.object3D.position.clone();
+        origin.y += 5;
+
+        raycaster.set(origin, downVector);
+
+        const intersects = raycaster.intersectObject(navMeshEl.object3D, true);
+
+        if (intersects.length > 0) {
+          rig.object3D.position.y = intersects[0].point.y;
+          return true;
         }
 
-        const speed = 0.5;
-        const rotationSmooth = 0.15;
+        return false;
+      }
 
-        let keys = {};
-        let nippleVector = new THREE.Vector2(0, 0);
-        let lookInput = new THREE.Vector2(0, 0);
-        let lastTime = performance.now();
-        let moving = false;
-        let started = false;
+      /* TECLADO */
+      window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+      window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
-        const raycaster = new THREE.Raycaster();
-        const downVector = new THREE.Vector3(0, -1, 0);
+      /* JOYSTICKS */
+      const isTouch = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        function angleDifference(a, b) {
-          let diff = b - a;
-          return Math.atan2(Math.sin(diff), Math.cos(diff));
-        }
+      if (isTouch) {
+        const leftZone = document.getElementById('joyLeft');
+        const rightZone = document.getElementById('joyRight');
 
-        function snapRigToNavmesh() {
-          if (!navMeshEl.object3D) return false;
+        leftZone.style.display = 'block';
+        rightZone.style.display = 'block';
 
-          navMeshEl.object3D.updateMatrixWorld(true);
-
-          const origin = rig.object3D.position.clone();
-          origin.y += 5;
-
-          raycaster.set(origin, downVector);
-
-          const intersects = raycaster.intersectObject(navMeshEl.object3D, true);
-
-          if (intersects.length > 0) {
-            rig.object3D.position.y = intersects[0].point.y;
-            return true;
-          }
-
-          return false;
-        }
-
-        /* TECLADO */
-        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-
-        /* JOYSTICKS */
-        const isTouch = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-        if (isTouch) {
-          const leftZone = document.getElementById('joyLeft');
-          const rightZone = document.getElementById('joyRight');
-
-          leftZone.style.display = 'block';
-          rightZone.style.display = 'block';
-
-          const moveJoy = nipplejs.create({
-            zone: leftZone,
-            mode: 'static',
-            position: { left: '50%', top: '50%' },
-            color: 'white',
-            size: 120
-          });
-
-          moveJoy.on('move', (evt, data) => {
-            if (!data || !data.vector) return;
-            nippleVector.set(data.vector.x, data.vector.y);
-          });
-
-          moveJoy.on('end', () => nippleVector.set(0, 0));
-
-          const lookJoy = nipplejs.create({
-            zone: rightZone,
-            mode: 'static',
-            position: { left: '50%', top: '50%' },
-            color: 'white',
-            size: 120
-          });
-
-          lookJoy.on('move', (evt, data) => {
-            if (!data || !data.vector) return;
-            lookInput.set(data.vector.x, data.vector.y);
-          });
-
-          lookJoy.on('end', () => lookInput.set(0, 0));
-        }
-
-        /* ANIMACIÓN */
-        player.addEventListener('model-loaded', () => {
-          player.components['animation-mixer']?.pause();
+        const moveJoy = nipplejs.create({
+          zone: leftZone,
+          mode: 'static',
+          position: { left: '50%', top: '50%' },
+          color: 'white',
+          size: 120
         });
 
-/* ===== TRIGGERS ===== */
-      document.querySelectorAll(".trigger").forEach(trigger => {
-        const triggerId = trigger.id;
+        moveJoy.on('move', (evt, data) => {
+          if (!data || !data.vector) return;
+          nippleVector.set(data.vector.x, data.vector.y);
+        });
 
-        if (activatedTriggers.has(triggerId)) return;
+        moveJoy.on('end', () => nippleVector.set(0, 0));
 
-        const playerPos = rig.object3D.position.clone();
-        const triggerPos = new THREE.Vector3();
-        trigger.object3D.getWorldPosition(triggerPos);
+        const lookJoy = nipplejs.create({
+          zone: rightZone,
+          mode: 'static',
+          position: { left: '50%', top: '50%' },
+          color: 'white',
+          size: 120
+        });
 
-        const distance = playerPos.distanceTo(triggerPos);
+        lookJoy.on('move', (evt, data) => {
+          if (!data || !data.vector) return;
+          lookInput.set(data.vector.x, data.vector.y);
+        });
 
-        if (distance < 1.2) {
-          activatedTriggers.add(triggerId);
+        lookJoy.on('end', () => lookInput.set(0, 0));
+      }
 
-          const audioId = trigger.getAttribute("data-audio");
-          if (!audioId) return;
-
-          const audio = document.getElementById(audioId);
-          if (!audio) {
-            console.warn("No existe el audio:", audioId);
-            return;
-          }
-
-          audio.currentTime = 0;
-          audio.play()
-            .then(() => {
-              console.log("Reproduciendo:", audioId);
-            })
-            .catch(err => {
-              console.error("ERROR PLAY:", err);
-            });
-        }
+      /* ANIMACIÓN */
+      player.addEventListener('model-loaded', () => {
+        player.components['animation-mixer']?.pause();
       });
-        
-        function tick() {
-          const now = performance.now();
-          const delta = (now - lastTime) / 1000;
-          lastTime = now;
 
-          navMeshEl.object3D.updateMatrixWorld(true);
+      function tick() {
+        const now = performance.now();
+        const delta = (now - lastTime) / 1000;
+        lastTime = now;
 
-          const input = new THREE.Vector2(0, 0);
+        navMeshEl.object3D.updateMatrixWorld(true);
 
-          if (keys['w']) input.y -= 1;
-          if (keys['s']) input.y += 1;
-          if (keys['a']) input.x -= 1;
-          if (keys['d']) input.x += 1;
+        const input = new THREE.Vector2(0, 0);
 
-          input.x += nippleVector.x;
-          input.y -= nippleVector.y;
+        if (keys['w']) input.y -= 1;
+        if (keys['s']) input.y += 1;
+        if (keys['a']) input.x -= 1;
+        if (keys['d']) input.x += 1;
 
-          if (input.length() > 0) {
-            input.normalize();
+        input.x += nippleVector.x;
+        input.y -= nippleVector.y;
 
-            const forward = new THREE.Vector3();
-            camera.object3D.getWorldDirection(forward);
-            forward.y = 0;
-            forward.normalize();
+        if (input.length() > 0) {
+          input.normalize();
 
-            const right = new THREE.Vector3();
-            right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+          const forward = new THREE.Vector3();
+          camera.object3D.getWorldDirection(forward);
+          forward.y = 0;
+          forward.normalize();
 
-            const moveVector = new THREE.Vector3();
-            moveVector.addScaledVector(forward, input.y);
-            moveVector.addScaledVector(right, -input.x);
+          const right = new THREE.Vector3();
+          right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
 
-            const subSteps = 8;
-            const cornerFriction = 0.5;
+          const moveVector = new THREE.Vector3();
+          moveVector.addScaledVector(forward, input.y);
+          moveVector.addScaledVector(right, -input.x);
 
-            const totalMove = moveVector.clone().multiplyScalar(speed * delta);
-            const stepMove = totalMove.clone().divideScalar(subSteps);
+          const subSteps = 8;
+          const cornerFriction = 0.5;
 
-            let currentPosition = rig.object3D.position.clone();
+          const totalMove = moveVector.clone().multiplyScalar(speed * delta);
+          const stepMove = totalMove.clone().divideScalar(subSteps);
 
-            for (let i = 0; i < subSteps; i++) {
-              let moved = false;
+          let currentPosition = rig.object3D.position.clone();
 
-              let testFull = currentPosition.clone().add(stepMove);
-              let origin = testFull.clone();
-              origin.y += 5;
+          for (let i = 0; i < subSteps; i++) {
+            let moved = false;
 
-              raycaster.set(origin, downVector);
-              let intersects = raycaster.intersectObject(navMeshEl.object3D, true);
+            let testFull = currentPosition.clone().add(stepMove);
+            let origin = testFull.clone();
+            origin.y += 5;
 
-              if (intersects.length > 0) {
-                currentPosition.copy(testFull);
-                currentPosition.y = intersects[0].point.y;
-                moved = true;
-              }
+            raycaster.set(origin, downVector);
+            let intersects = raycaster.intersectObject(navMeshEl.object3D, true);
 
-              if (!moved) {
-                const tryAxis = (axis, amount) => {
-                  let reduced = amount;
+            if (intersects.length > 0) {
+              currentPosition.copy(testFull);
+              currentPosition.y = intersects[0].point.y;
+              moved = true;
+            }
 
-                  for (let r = 0; r < 3; r++) {
-                    let test = currentPosition.clone();
-                    test[axis] += reduced;
+            if (!moved) {
+              const tryAxis = (axis, amount) => {
+                let reduced = amount;
 
-                    let o = test.clone();
-                    o.y += 5;
+                for (let r = 0; r < 3; r++) {
+                  let test = currentPosition.clone();
+                  test[axis] += reduced;
 
-                    raycaster.set(o, downVector);
-                    let hits = raycaster.intersectObject(navMeshEl.object3D, true);
+                  let o = test.clone();
+                  o.y += 5;
 
-                    if (hits.length > 0) {
-                      currentPosition[axis] = test[axis];
-                      currentPosition.y = hits[0].point.y;
-                      return true;
-                    }
+                  raycaster.set(o, downVector);
+                  let hits = raycaster.intersectObject(navMeshEl.object3D, true);
 
-                    reduced *= cornerFriction;
+                  if (hits.length > 0) {
+                    currentPosition[axis] = test[axis];
+                    currentPosition.y = hits[0].point.y;
+                    return true;
                   }
-                  return false;
-                };
 
-                tryAxis("x", stepMove.x);
-                tryAxis("z", stepMove.z);
-              }
-            }
+                  reduced *= cornerFriction;
+                }
+                return false;
+              };
 
-            rig.object3D.position.copy(currentPosition);
-
-            const moveAngle = Math.atan2(moveVector.x, moveVector.z);
-            const targetRotation = moveAngle + Math.PI;
-            const currentRotation = player.object3D.rotation.y;
-            const diff = angleDifference(currentRotation, targetRotation);
-            player.object3D.rotation.y += diff * rotationSmooth;
-
-            if (!moving) {
-              player.components['animation-mixer']?.play();
-              moving = true;
-            }
-          } else {
-            if (moving) {
-              player.components['animation-mixer']?.pause();
-              moving = false;
+              tryAxis("x", stepMove.x);
+              tryAxis("z", stepMove.z);
             }
           }
 
-          /* Ajuste altura navmesh */
-          snapRigToNavmesh();
+          rig.object3D.position.copy(currentPosition);
 
-          /* ROTACIÓN CÁMARA */
-          const look = cameraYaw.components['look-controls'];
-          if (look) {
-            const rotSpeed = 1.5;
+          const moveAngle = Math.atan2(moveVector.x, moveVector.z);
+          const targetRotation = moveAngle + Math.PI;
+          const currentRotation = player.object3D.rotation.y;
+          const diff = angleDifference(currentRotation, targetRotation);
+          player.object3D.rotation.y += diff * rotationSmooth;
 
-            look.yawObject.rotation.y -= lookInput.x * rotSpeed * delta;
-            look.pitchObject.rotation.x -= lookInput.y * rotSpeed * delta;
-
-            const maxPitch = Math.PI / 2 - 0.1;
-            look.pitchObject.rotation.x = Math.max(
-              -maxPitch,
-              Math.min(maxPitch, look.pitchObject.rotation.x)
-            );
+          if (!moving) {
+            player.components['animation-mixer']?.play();
+            moving = true;
           }
-
-          requestAnimationFrame(tick);
+        } else {
+          if (moving) {
+            player.components['animation-mixer']?.pause();
+            moving = false;
+          }
         }
 
-        navMeshEl.addEventListener('model-loaded', () => {
-          console.log('Navmesh cargado');
+        /* Ajuste altura navmesh */
+        snapRigToNavmesh();
 
-          if (!started) {
-            started = true;
-            snapRigToNavmesh();
-            tick();
+        /* ROTACIÓN CÁMARA */
+        const look = cameraYaw.components['look-controls'];
+        if (look) {
+          const rotSpeed = 1.5;
+
+          look.yawObject.rotation.y -= lookInput.x * rotSpeed * delta;
+          look.pitchObject.rotation.x -= lookInput.y * rotSpeed * delta;
+
+          const maxPitch = Math.PI / 2 - 0.1;
+          look.pitchObject.rotation.x = Math.max(
+            -maxPitch,
+            Math.min(maxPitch, look.pitchObject.rotation.x)
+          );
+        }
+
+        /* ===== TRIGGERS ===== */
+        document.querySelectorAll(".trigger").forEach(trigger => {
+          const triggerId = trigger.id;
+
+          if (activatedTriggers.has(triggerId)) return;
+
+          const playerPos = rig.object3D.position.clone();
+          const triggerPos = new THREE.Vector3();
+          trigger.object3D.getWorldPosition(triggerPos);
+
+          const distance = playerPos.distanceTo(triggerPos);
+
+          if (distance < 1.2) {
+            activatedTriggers.add(triggerId);
+
+            const audioId = trigger.getAttribute("data-audio");
+            if (!audioId) return;
+
+            const audio = document.getElementById(audioId);
+            if (!audio) {
+              console.warn("No existe el audio:", audioId);
+              return;
+            }
+
+            audio.currentTime = 0;
+            audio.play()
+              .then(() => {
+                console.log("Reproduciendo:", audioId);
+              })
+              .catch(err => {
+                console.error("ERROR PLAY:", err);
+              });
           }
         });
 
+        requestAnimationFrame(tick);
+      }
+
+      navMeshEl.addEventListener('model-loaded', () => {
+        console.log('Navmesh cargado');
+
+        if (!started) {
+          started = true;
+          snapRigToNavmesh();
+          tick();
+        }
       });
+
     });
-    
-    window.addEventListener('click', () => {
-      document.querySelectorAll('video').forEach(video => {
-        video.play();
-      });
-    }, { once: true });
-    
-  </script>
+  });
+  
+  window.addEventListener('click', () => {
+    document.querySelectorAll('video').forEach(video => {
+      video.play();
+    });
+  }, { once: true });
+  
+</script>
 
 </body>
 </html>
