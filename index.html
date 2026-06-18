@@ -30,8 +30,28 @@
     height: 100%;
     margin: 0;
   }
+
+#cinematicScreen{
+  position:fixed;
+  inset:0;
+  background:black;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:999999;
+}
+
+#cinematicVideo{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
 </style>
 
+<div id="cinematicScreen">
+  <video id="cinematicVideo" playsinline preload="auto"></video>
+</div>
+  
 <body style="margin:0; overflow:hidden;">
 
   <!--Zona para joystick-->
@@ -90,6 +110,11 @@
       <audio id="audio7" src="assets/audio7.mp3"></audio>
       <audio id="audio8" src="assets/audio8.mp3"></audio>
       <audio id="audio9" src="assets/audio9.mp3"></audio>
+
+      <video id="video1" src="assets/video1.mp4"></video>
+      <video id="video2" src="assets/video2.mp4"></video>
+      <video id="video3" src="assets/video3.mp4"></video>
+      <video id="video4" src="assets/video4.mp4"></video>
       
     </a-assets>
 
@@ -206,6 +231,7 @@
       const navMeshEl = document.querySelector('#navmeshEntity');
       
       const activatedTriggers = new Set();
+      let canMove = true;
 
       const exitDistance = 1.5;
       let alreadyTriggered = false;
@@ -303,10 +329,19 @@
         player.components['animation-mixer']?.pause();
       });
 
+let cinematicPlaying = false;
+const cinematicScreen = document.getElementById("cinematicScreen");
+const cinematicVideo = document.getElementById("cinematicVideo");
+      
       function tick() {
         const now = performance.now();
         const delta = (now - lastTime) / 1000;
         lastTime = now;
+
+        if (cinematicPlaying) {
+          requestAnimationFrame(tick);
+          return;
+        }
 
         navMeshEl.object3D.updateMatrixWorld(true);
 
@@ -426,40 +461,79 @@
           );
         }
 
-        /* ===== TRIGGERS ===== */
-        document.querySelectorAll(".trigger").forEach(trigger => {
-          const triggerId = trigger.id;
+/* ===== TRIGGERS ===== */
+document.querySelectorAll(".trigger").forEach(trigger => {
 
-          if (activatedTriggers.has(triggerId)) return;
+  const triggerId = trigger.id;
 
-          const playerPos = rig.object3D.position.clone();
-          const triggerPos = new THREE.Vector3();
-          trigger.object3D.getWorldPosition(triggerPos);
+  if (activatedTriggers.has(triggerId)) return;
 
-          const distance = playerPos.distanceTo(triggerPos);
+  const playerPos = rig.object3D.position.clone();
 
-          if (distance < 1.2) {
-            activatedTriggers.add(triggerId);
+  const triggerPos = new THREE.Vector3();
+  trigger.object3D.getWorldPosition(triggerPos);
 
-            const audioId = trigger.getAttribute("data-audio");
-            if (!audioId) return;
+  const distance = playerPos.distanceTo(triggerPos);
 
-            const audio = document.getElementById(audioId);
-            if (!audio) {
-              console.warn("No existe el audio:", audioId);
-              return;
-            }
+  if (distance < 1.2) {
 
-            audio.currentTime = 0;
-            audio.play()
-              .then(() => {
-                console.log("Reproduciendo:", audioId);
-              })
-              .catch(err => {
-                console.error("ERROR PLAY:", err);
-              });
-          }
+    activatedTriggers.add(triggerId);
+
+    const audioId = trigger.getAttribute("data-audio");
+    const videoId = trigger.getAttribute("data-video");
+
+    /* AUDIO */
+    if (audioId) {
+
+      const audio = document.getElementById(audioId);
+
+      if (!audio) {
+        console.warn("No existe:", audioId);
+        return;
+      }
+
+      audio.currentTime = 0;
+
+      audio.play()
+        .then(() => {
+          console.log("Audio:", audioId);
+        })
+        .catch(err => {
+          console.error(err);
         });
+    }
+
+    /* VIDEO CINEMÁTICO */
+    if (videoId) {
+
+      const video = document.getElementById(videoId);
+
+      if (!video) {
+        console.warn("No existe:", videoId);
+        return;
+      }
+
+      cinematicPlaying = true;
+
+      cinematicScreen.style.display = "flex";
+
+      video.currentTime = 0;
+
+      cinematicVideo.src = video.src;
+
+      cinematicVideo.play();
+
+      cinematicVideo.onended = () => {
+
+        cinematicVideo.pause();
+
+        cinematicScreen.style.display = "none";
+
+        cinematicPlaying = false;
+      };
+    }
+  }
+});
 
         requestAnimationFrame(tick);
       }
