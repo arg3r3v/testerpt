@@ -552,9 +552,8 @@ document.querySelectorAll(".trigger").forEach(trigger => {
   });
   
   window.addEventListener('click', () => {
-    document.querySelectorAll('video').forEach(video => {
-      video.play();
-    });
+    document.getElementById('stormVideo').play();
+    document.getElementById('tvVideo').play();
   }, { once: true });
   
 </script>
