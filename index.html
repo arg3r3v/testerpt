@@ -26,6 +26,24 @@
   #joyLeft { left: 20px; }
   #joyRight { right: 20px; }
 
+  #debugVR {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000000;
+    background: rgba(0, 0, 0, 0.75);
+    color: #00ff00;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.35;
+    padding: 10px;
+    max-width: 320px;
+    max-height: 45vh;
+    overflow: auto;
+    white-space: pre-wrap;
+    pointer-events: none;
+  }
+
   html, body {
     height: 100%;
     margin: 0;
@@ -37,6 +55,7 @@
   <!--Zona para joystick-->
   <div id="joyLeft"></div>
   <div id="joyRight"></div>
+  <div id="debugVR">Esperando datos del control...</div>
   
   <a-scene vr-mode-ui="enabled: true"
     fog="type: exponential; color: #000000; density: 0.15"
@@ -224,6 +243,7 @@
       const camera = document.querySelector('#gameCamera');
       const cameraYaw = document.querySelector('#cameraYaw');
       const navMeshEl = document.querySelector('#navmeshEntity');
+      const debugVR = document.querySelector('#debugVR');
       
       const activatedTriggers = new Set();
       let canMove = true;
@@ -272,6 +292,73 @@
         }
 
         return false;
+      }
+
+      function updateVRDebug() {
+        if (!debugVR) return;
+
+        const lines = [];
+
+        const xrSession = scene.renderer && scene.renderer.xr ? scene.renderer.xr.getSession() : null;
+        const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+
+        lines.push('XR session: ' + (xrSession ? 'activa' : 'no activa'));
+        lines.push('');
+
+        if (xrSession && xrSession.inputSources && xrSession.inputSources.length > 0) {
+          lines.push('XR inputSources:');
+
+          xrSession.inputSources.forEach((source, index) => {
+            if (!source.gamepad) return;
+
+            lines.push('Source ' + index);
+            lines.push('Axes: ' + Array.from(source.gamepad.axes).map(v => Number(v).toFixed(3)).join(', '));
+
+            source.gamepad.buttons.forEach((button, buttonIndex) => {
+              if (button.pressed || button.touched || button.value > 0) {
+                lines.push(
+                  'Btn ' + buttonIndex +
+                  ': pressed=' + button.pressed +
+                  ' touched=' + button.touched +
+                  ' value=' + Number(button.value).toFixed(3)
+                );
+              }
+            });
+
+            lines.push('');
+          });
+        } else {
+          lines.push('XR inputSources: sin datos');
+          lines.push('');
+        }
+
+        const activeGamepads = Array.from(gamepads).filter(Boolean);
+
+        if (activeGamepads.length > 0) {
+          lines.push('navigator.getGamepads():');
+
+          activeGamepads.forEach((gp, index) => {
+            lines.push('Pad ' + index + ': ' + (gp.id || 'sin id'));
+            lines.push('Axes: ' + gp.axes.map(v => Number(v).toFixed(3)).join(', '));
+
+            gp.buttons.forEach((button, buttonIndex) => {
+              if (button.pressed || button.touched || button.value > 0) {
+                lines.push(
+                  'Btn ' + buttonIndex +
+                  ': pressed=' + button.pressed +
+                  ' touched=' + button.touched +
+                  ' value=' + Number(button.value).toFixed(3)
+                );
+              }
+            });
+
+            lines.push('');
+          });
+        } else {
+          lines.push('navigator.getGamepads(): sin pads activos');
+        }
+
+        debugVR.innerHTML = lines.join('\n');
       }
 
       /* TECLADO */
@@ -333,6 +420,8 @@
         const delta = (now - lastTime) / 1000;
         lastTime = now;
 
+        updateVRDebug();
+
         if (cinematicPlaying) {
           requestAnimationFrame(tick);
           return;
@@ -342,13 +431,33 @@
 
         const input = new THREE.Vector2(0, 0);
 
-        if (keys['w']) input.y -= 1;
-        if (keys['s']) input.y += 1;
-        if (keys['a']) input.x -= 1;
-        if (keys['d']) input.x += 1;
+        if (keys['w'] || keys['arrowup']) input.y -= 1;
+        if (keys['s'] || keys['arrowdown']) input.y += 1;
+        if (keys['a'] || keys['arrowleft']) input.x -= 1;
+        if (keys['d'] || keys['arrowright']) input.x += 1;
 
         input.x += nippleVector.x;
         input.y -= nippleVector.y;
+
+        if (navigator.getGamepads) {
+          const pads = navigator.getGamepads();
+          const gp = pads && pads[0];
+
+          if (gp) {
+            const axisX = Math.abs(gp.axes[0] || 0) > 0.15 ? gp.axes[0] : 0;
+            const axisY = Math.abs(gp.axes[1] || 0) > 0.15 ? gp.axes[1] : 0;
+
+            input.x += axisX;
+            input.y += axisY;
+
+            if (axisX === 0 && axisY === 0) {
+              if (gp.buttons[14] && gp.buttons[14].pressed) input.x -= 1;
+              if (gp.buttons[15] && gp.buttons[15].pressed) input.x += 1;
+              if (gp.buttons[12] && gp.buttons[12].pressed) input.y -= 1;
+              if (gp.buttons[13] && gp.buttons[13].pressed) input.y += 1;
+            }
+          }
+        }
 
         if (input.length() > 0) {
           input.normalize();
