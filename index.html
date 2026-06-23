@@ -140,11 +140,11 @@
       height="0.74">
     </a-video>
 
-    <!-- Cinemática dentro de la escena -->
+    <!-- Cinemática dentro de la cámara -->
     <a-entity id="cinematicScreen" visible="false">
       <a-video
         src="#cinematicVideo"
-        position="0 0 -2"
+        position="0 0 -0.8"
         width="4"
         height="2.25">
       </a-video>
@@ -173,7 +173,16 @@
       <a-entity id="cameraPivot" position="0 1.5 0">
         <a-entity id="cameraYaw" look-controls="pointerLockEnabled: false">
           <a-entity id="cameraBoom" position="0 1 4">
-            <a-entity id="gameCamera" camera></a-entity>
+            <a-entity id="gameCamera" camera>
+              <a-entity id="cinematicScreen" visible="false">
+                <a-video
+                  src="#cinematicVideo"
+                  position="0 0 -0.8"
+                  width="4"
+                  height="2.25">
+                </a-video>
+              </a-entity>
+            </a-entity>
           </a-entity>
         </a-entity>
       </a-entity>
