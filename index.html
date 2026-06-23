@@ -30,27 +30,7 @@
     height: 100%;
     margin: 0;
   }
-
-#cinematicScreen{
-  position:fixed;
-  inset:0;
-  background:black;
-  display:none;
-  justify-content:center;
-  align-items:center;
-  z-index:999999;
-}
-
-#cinematicVideo{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-}
 </style>
-
-<div id="cinematicScreen">
-  <video id="cinematicVideo" playsinline preload="auto"></video>
-</div>
   
 <body style="margin:0; overflow:hidden;">
 
@@ -73,7 +53,7 @@
         playsinline>
       </video>
 
-      <video
+    <video
         id="tvVideo"
         src="assets/noti.mp4"
         autoplay
@@ -116,6 +96,8 @@
       <video id="video2" src="assets/video2.mp4"></video>
       <video id="video3" src="assets/video3.mp4"></video>
       <video id="video4" src="assets/video4.mp4"></video>
+
+      <video id="cinematicVideo" preload="auto" playsinline webkit-playsinline></video>
       
     </a-assets>
 
@@ -157,6 +139,16 @@
       width="0.88"
       height="0.74">
     </a-video>
+
+    <!-- Cinemática dentro de la escena -->
+    <a-entity id="cinematicScreen" visible="false">
+      <a-video
+        src="#cinematicVideo"
+        position="0 0 -2"
+        width="4"
+        height="2.25">
+      </a-video>
+    </a-entity>
 
     <!-- Trigger boxes -->
     <a-box class="trigger" id="trigger1"  position="-6.3 1 0.13"  width="0.5" height="2" depth="1" visible="true" data-audio="audio1"></a-box>
@@ -331,9 +323,9 @@
         player.components['animation-mixer']?.pause();
       });
 
-let cinematicPlaying = false;
-const cinematicScreen = document.getElementById("cinematicScreen");
-const cinematicVideo = document.getElementById("cinematicVideo");
+      let cinematicPlaying = false;
+      const cinematicScreen = document.getElementById("cinematicScreen");
+      const cinematicVideo = document.getElementById("cinematicVideo");
       
       function tick() {
         const now = performance.now();
@@ -463,79 +455,80 @@ const cinematicVideo = document.getElementById("cinematicVideo");
           );
         }
 
-/* ===== TRIGGERS ===== */
-document.querySelectorAll(".trigger").forEach(trigger => {
+        /* ===== TRIGGERS ===== */
+        document.querySelectorAll(".trigger").forEach(trigger => {
 
-  const triggerId = trigger.id;
+          const triggerId = trigger.id;
 
-  if (activatedTriggers.has(triggerId)) return;
+          if (activatedTriggers.has(triggerId)) return;
 
-  const playerPos = rig.object3D.position.clone();
+          const playerPos = rig.object3D.position.clone();
 
-  const triggerPos = new THREE.Vector3();
-  trigger.object3D.getWorldPosition(triggerPos);
+          const triggerPos = new THREE.Vector3();
+          trigger.object3D.getWorldPosition(triggerPos);
 
-  const distance = playerPos.distanceTo(triggerPos);
+          const distance = playerPos.distanceTo(triggerPos);
 
-  if (distance < 1.2) {
+          if (distance < 1.2) {
 
-    activatedTriggers.add(triggerId);
+            activatedTriggers.add(triggerId);
 
-    const audioId = trigger.getAttribute("data-audio");
-    const videoId = trigger.getAttribute("data-video");
+            const audioId = trigger.getAttribute("data-audio");
+            const videoId = trigger.getAttribute("data-video");
 
-    /* AUDIO */
-    if (audioId) {
+            /* AUDIO */
+            if (audioId) {
 
-      const audio = document.getElementById(audioId);
+              const audio = document.getElementById(audioId);
 
-      if (!audio) {
-        console.warn("No existe:", audioId);
-        return;
-      }
+              if (!audio) {
+                console.warn("No existe:", audioId);
+                return;
+              }
 
-      audio.currentTime = 0;
+              audio.currentTime = 0;
 
-      audio.play()
-        .then(() => {
-          console.log("Audio:", audioId);
-        })
-        .catch(err => {
-          console.error(err);
+              audio.play()
+                .then(() => {
+                  console.log("Audio:", audioId);
+                })
+                .catch(err => {
+                  console.error(err);
+                });
+            }
+
+            /* VIDEO CINEMÁTICO */
+            if (videoId) {
+
+              const video = document.getElementById(videoId);
+
+              if (!video) {
+                console.warn("No existe:", videoId);
+                return;
+              }
+
+              cinematicPlaying = true;
+              cinematicScreen.setAttribute("visible", "true");
+
+              cinematicVideo.pause();
+              cinematicVideo.currentTime = 0;
+              cinematicVideo.src = video.src;
+              cinematicVideo.load();
+
+              cinematicVideo.oncanplay = () => {
+                cinematicVideo.play().catch(err => {
+                  console.error(err);
+                });
+              };
+
+              cinematicVideo.onended = () => {
+                cinematicVideo.pause();
+                cinematicScreen.setAttribute("visible", "false");
+                cinematicPlaying = false;
+              };
+            }
+          }
         });
-    }
-
-    /* VIDEO CINEMÁTICO */
-    if (videoId) {
-
-      const video = document.getElementById(videoId);
-
-      if (!video) {
-        console.warn("No existe:", videoId);
-        return;
-      }
-
-      cinematicPlaying = true;
-
-      cinematicScreen.style.display = "flex";
-
-      video.currentTime = 0;
-
-      cinematicVideo.src = video.src;
-
-      cinematicVideo.play();
-
-      cinematicVideo.onended = () => {
-
-        cinematicVideo.pause();
-
-        cinematicScreen.style.display = "none";
-
-        cinematicPlaying = false;
-      };
-    }
-  }
-});
 
         requestAnimationFrame(tick);
       }
