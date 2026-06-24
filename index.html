@@ -232,7 +232,7 @@
     
   </a-scene>
 
-  <script>
+<script>
   window.addEventListener('load', () => {
     const scene = document.querySelector('a-scene');
 
@@ -444,13 +444,32 @@
           const gp = pads && pads[0];
 
           if (gp) {
-            const axisX = Math.abs(gp.axes[0] || 0) > 0.15 ? gp.axes[0] : 0;
-            const axisY = Math.abs(gp.axes[1] || 0) > 0.15 ? gp.axes[1] : 0;
+            const axes01X = typeof gp.axes[0] === 'number' ? gp.axes[0] : 0;
+            const axes01Y = typeof gp.axes[1] === 'number' ? gp.axes[1] : 0;
+            const axes23X = typeof gp.axes[2] === 'number' ? gp.axes[2] : 0;
+            const axes23Y = typeof gp.axes[3] === 'number' ? gp.axes[3] : 0;
 
-            input.x += axisX;
-            input.y += axisY;
+            const mag01 = Math.abs(axes01X) + Math.abs(axes01Y);
+            const mag23 = Math.abs(axes23X) + Math.abs(axes23Y);
 
-            if (axisX === 0 && axisY === 0) {
+            let rawX = 0;
+            let rawY = 0;
+
+            if (mag23 > mag01) {
+              rawX = Math.abs(axes23X) > 0.15 ? axes23X : 0;
+              rawY = Math.abs(axes23Y) > 0.15 ? axes23Y : 0;
+            } else {
+              rawX = Math.abs(axes01X) > 0.15 ? axes01X : 0;
+              rawY = Math.abs(axes01Y) > 0.15 ? axes01Y : 0;
+            }
+
+            const rotatedX = rawY;
+            const rotatedY = -rawX;
+
+            input.x += rotatedX;
+            input.y += rotatedY;
+
+            if (rotatedX === 0 && rotatedY === 0) {
               if (gp.buttons[14] && gp.buttons[14].pressed) input.x -= 1;
               if (gp.buttons[15] && gp.buttons[15].pressed) input.x += 1;
               if (gp.buttons[12] && gp.buttons[12].pressed) input.y -= 1;
